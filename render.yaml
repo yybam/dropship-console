@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: dropship-console
+    env: node
+    plan: free
+    buildCommand: npm install && npx playwright install chromium
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LIBSQL_URL
+        sync: false          # Set this in Render dashboard → your Turso database URL
+      - key: LIBSQL_AUTH_TOKEN
+        sync: false          # Set this in Render dashboard → your Turso auth token
+      - key: RESEND_API_KEY
+        sync: false          # Optional: for email alerts
+      - key: ALERT_EMAIL
+        sync: false          # Optional: where to send price/OOS alerts
+      - key: SYNC_INTERVAL_MINUTES
+        value: "120"
+      - key: BRIGHTDATA_PROXY
+        sync: false          # Optional: proxy for Amazon scraping reliability

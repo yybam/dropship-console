@@ -1,0 +1,8 @@
+node_modules/
+.env
+dropship.db
+dropship.db-shm
+dropship.db-wal
+server.log
+test_ebay*.mjs
+*.log
