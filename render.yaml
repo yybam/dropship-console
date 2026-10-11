@@ -3,13 +3,11 @@ services:
     name: dropship-console
     env: node
     plan: free
-    buildCommand: npm install && PLAYWRIGHT_BROWSERS_PATH=/opt/render/project/src npx playwright install --with-deps chromium
-    startCommand: PLAYWRIGHT_BROWSERS_PATH=/opt/render/project/src node server.js
+    buildCommand: npm install && npx playwright install --with-deps chromium
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PLAYWRIGHT_BROWSERS_PATH
-        value: /opt/render/project/src
       - key: LIBSQL_URL
         sync: false          # Set this in Render dashboard → your Turso database URL
       - key: LIBSQL_AUTH_TOKEN
