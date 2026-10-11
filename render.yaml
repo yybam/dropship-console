@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     buildCommand: npm install && PLAYWRIGHT_BROWSERS_PATH=/opt/render/project/src npx playwright install --with-deps chromium
-    startCommand: node server.js
+    startCommand: PLAYWRIGHT_BROWSERS_PATH=/opt/render/project/src node server.js
     envVars:
       - key: NODE_ENV
         value: production

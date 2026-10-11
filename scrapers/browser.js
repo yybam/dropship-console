@@ -1,6 +1,11 @@
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
+// On Render.com the build installs browsers into the project dir, not ~/.cache
+if (process.env.RENDER) {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = "/opt/render/project/src";
+}
+
 chromium.use(StealthPlugin());
 
 const USER_AGENTS = [
