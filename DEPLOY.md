@@ -1,110 +1,100 @@
 # Deploy Dropship Pro to dropshipconsole.com
 
-Full cloud deployment: **Render.com** (free hosting) + **Turso** (free cloud SQLite) + **Cloudflare** (free DNS + SSL).
+Free hosting: **Render.com** + **Turso** (cloud SQLite) + **Cloudflare** (DNS + SSL).
 
 ---
 
-## Step 1 — Create free Turso database (cloud SQLite)
+## Step 1 — Create free Turso database (2 minutes, web UI only)
 
-1. Sign up at https://turso.tech (free tier: 500 DBs, 8GB storage)
-2. Install the Turso CLI:
-   ```
-   winget install ChiselStrike.Turso
-   ```
-3. Log in and create your database:
-   ```
-   turso auth login
-   turso db create dropship-console
-   ```
-4. Get your database URL and auth token:
-   ```
-   turso db show dropship-console --url
-   turso db tokens create dropship-console
-   ```
-5. Save both — you'll need them in Step 3.
+> No CLI needed — do this entirely in the browser.
+
+1. Go to **https://app.turso.tech** and sign up (use GitHub for one click)
+2. Click **"Create database"**
+   - Name: `dropship-console`
+   - Location: pick the closest region (e.g., `aws-us-east-1`)
+3. Once created, click the database → **"Connect"** tab
+4. Copy the **Database URL** — looks like: `libsql://dropship-console-[your-username].turso.io`
+5. Click **"Generate Token"** (or "+ Create token") → copy the token
+
+**Save both values** — you need them in Step 3.
 
 ---
 
-## Step 2 — Deploy to Render.com (free)
+## Step 2 — Deploy to Render.com (3 minutes, web UI only)
 
-1. Sign up at https://render.com
-2. Connect your GitHub account
-3. Push this project to a GitHub repo:
-   ```
-   git init
-   git add .
-   git commit -m "Initial dropship console"
-   git remote add origin https://github.com/YOUR_USERNAME/dropship-console.git
-   git push -u origin main
-   ```
-4. In Render dashboard → **New** → **Web Service**
-5. Connect your GitHub repo
-6. Render auto-detects `render.yaml` — click **Deploy**
+1. Go to **https://render.com** and sign up (use GitHub for one click)
+2. Click **New +** → **Web Service**
+3. Connect your GitHub account if prompted
+4. Select the repo: **`yybam/dropship-console`**
+5. Render auto-detects `render.yaml` — everything is pre-configured
+6. Click **"Create Web Service"**
 
 ---
 
 ## Step 3 — Set environment variables in Render
 
-In your Render service → **Environment** tab, add:
+Before (or after) first deploy, go to your Render service → **Environment** tab:
 
 | Key | Value |
 |-----|-------|
 | `LIBSQL_URL` | `libsql://dropship-console-[username].turso.io` |
 | `LIBSQL_AUTH_TOKEN` | `your-turso-token` |
-| `RESEND_API_KEY` | *(optional)* your Resend key for email alerts |
+| `RESEND_API_KEY` | *(optional)* Resend key for email alerts |
 | `ALERT_EMAIL` | *(optional)* yybambi23@gmail.com |
 
-Click **Save Changes** → Render will redeploy automatically.
+Click **"Save Changes"** → Render redeploys automatically with the cloud DB.
 
 ---
 
 ## Step 4 — Register dropshipconsole.com
 
-**Cheapest option: Cloudflare Registrar** (~$9.15/year at cost, no markup)
+**Cheapest option: Cloudflare Registrar** (~$9.15/year, no markup)
 
-1. Go to https://cloudflare.com → **Register a Domain**
-2. Search for `dropshipconsole.com`
-3. Purchase ($9.15/year)
+1. Go to **https://dash.cloudflare.com** → **Domain Registration** → **Register Domains**
+2. Search `dropshipconsole.com` → purchase (~$9.15/year)
+
+*(Skip this step if you're fine using the free Render URL: `https://dropship-console.onrender.com`)*
 
 ---
 
 ## Step 5 — Point the domain to Render
 
-1. In Render → your service → **Settings** → **Custom Domains** → Add `dropshipconsole.com` and `www.dropshipconsole.com`
-2. Render gives you a CNAME target like `dropship-console.onrender.com`
-3. In Cloudflare DNS → add records:
+1. In Render → your service → **Settings** → **Custom Domains** → Add:
+   - `dropshipconsole.com`
+   - `www.dropshipconsole.com`
+2. Render gives you a CNAME: `dropship-console.onrender.com`
+3. In Cloudflare DNS add these records:
 
    | Type | Name | Content | Proxy |
    |------|------|---------|-------|
    | CNAME | `@` | `dropship-console.onrender.com` | ✅ Proxied |
    | CNAME | `www` | `dropship-console.onrender.com` | ✅ Proxied |
 
-4. SSL is automatic via Cloudflare (free)
+SSL is automatic via Cloudflare.
 
 ---
 
-## Step 6 — Keep the server awake (free)
+## Step 6 — Keep the server awake (free, prevents Render spindown)
 
-Render free tier **spins down after 15 min of inactivity** (cron syncs won't run while asleep).
+Render free tier **sleeps after 15 min of inactivity** — cron auto-sync stops while asleep.
 
-Fix: Use **UptimeRobot** (free) to ping every 14 minutes:
-1. Sign up at https://uptimerobot.com
-2. Add monitor: HTTP(s) → `https://dropshipconsole.com/api/stats`
-3. Set interval: **14 minutes**
-
-This keeps the server warm so auto-sync runs on schedule.
+Fix: **UptimeRobot** (free) pings every 14 minutes:
+1. Go to **https://uptimerobot.com** → sign up free
+2. **New Monitor** → HTTP(s)
+3. URL: `https://dropshipconsole.com/api/stats` (or your Render URL)
+4. Interval: **14 minutes**
 
 ---
 
 ## Local development
 
 ```bash
-# Still works exactly as before — uses local SQLite
+# Works exactly as before — uses local SQLite
 node server.js
 
-# To test with Turso locally:
-set LIBSQL_URL=libsql://dropship-console-[username].turso.io
-set LIBSQL_AUTH_TOKEN=your-token
+# Test with Turso locally:
+$env:LIBSQL_URL="libsql://dropship-console-[username].turso.io"
+$env:LIBSQL_AUTH_TOKEN="your-token"
 node server.js
 ```
 
@@ -114,9 +104,21 @@ node server.js
 
 | Service | Cost |
 |---------|------|
-| Render.com web service | **FREE** |
-| Turso database | **FREE** (8GB) |
+| Render.com web service | **FREE** (750 hrs/month) |
+| Turso cloud SQLite | **FREE** (8GB, 500 DBs) |
 | Cloudflare DNS + SSL | **FREE** |
 | UptimeRobot monitor | **FREE** |
-| Domain: dropshipconsole.com | **~$9.15/year** |
+| dropshipconsole.com domain | **~$9.15/year** |
 | **Total** | **~$9.15/year** |
+
+---
+
+## Quick checklist
+
+- [ ] Turso database created → URL + token copied
+- [ ] Render account created → GitHub repo connected
+- [ ] Env vars set in Render (LIBSQL_URL + LIBSQL_AUTH_TOKEN)
+- [ ] First deploy succeeded (check Render logs)
+- [ ] Domain purchased at Cloudflare (optional)
+- [ ] DNS records pointed at Render (optional)
+- [ ] UptimeRobot keep-alive set up
